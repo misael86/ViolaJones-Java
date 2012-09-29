@@ -1,6 +1,16 @@
+# Folders #
+
+.settings/
+bin/
+
+# Files #
+
 *.class
+.classpath
+.project
 
 # Package Files #
+
 *.jar
 *.war
 *.ear
