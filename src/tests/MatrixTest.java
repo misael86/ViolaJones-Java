@@ -307,4 +307,15 @@ public class MatrixTest {
         Assert.assertTrue(Matrix.EqualsList(am001, am002));
         Assert.assertFalse(Matrix.EqualsList(am001, am003));
     }
+	
+	@Test
+	public void TestSaveLoad()
+	{
+		Matrix m001 = new Matrix(3, 3, new double[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
+		
+		Matrix.saveMatrix(m001, "TestSaveLoad");
+		Matrix m002 = Matrix.loadMatrix("TestSaveLoad");
+		
+		Assert.assertTrue(m001.getIsEqual(m002));
+	}
 }

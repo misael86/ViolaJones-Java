@@ -4,15 +4,19 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 import global.Strings;
 
-public class Matrix {
+public class Matrix implements Serializable
+{
 
 	///
 	/// V A R I A B L E S
 	///
+	
+	private static final long serialVersionUID = 1L;
 
 	private int nrRows;
 	
@@ -759,8 +763,10 @@ public class Matrix {
 	/// SAVE & LOAD
 	///
 	
-	public static void saveMatrix( Matrix matrix, String fileName ) 
+	public static void saveMatrix(Matrix matrix, String fileName) 
     {
+		fileName = "data/" + fileName;
+		
 	    try 
 	    {
 		    FileOutputStream fileOutputStream = new FileOutputStream(fileName);
@@ -785,6 +791,8 @@ public class Matrix {
 	public static <T extends Matrix> T loadMatrix( String fileName ) 
     {
         T result;
+        
+        fileName = "data/" + fileName;
         
         try 
         {

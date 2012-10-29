@@ -1,5 +1,8 @@
 package utilities;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -196,6 +199,85 @@ public class Feature
         return result;
     }
     
-    
+    public static void saveFeaturePic(Feature feature, int width, int height, String filename) {
+
+        int x, y, w, h, k = 5;
+
+        x = (int) feature.x * k;
+        y = (int) feature.y * k;
+        w = (int) feature.w * k;
+        h = (int) feature.h * k;
+        width = width * k;
+        height = height * k;
+
+        BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = bi.createGraphics();
+
+        switch (feature.type) {
+            case type1:
+                g.setColor(Color.red);
+                g.fillRect(x, y, w, h);
+                g.setColor(Color.green);
+                g.fillRect(x, y + h, w, h);
+                break;
+
+            case type2:
+                g.setColor(Color.green);
+                g.fillRect(x, y, w, h);
+                g.setColor(Color.red);
+                g.fillRect(x + w, y, w, h);
+                break;
+
+            case type3:
+                g.setColor(Color.green);
+                g.fillRect(x, y, w, h);
+                g.fillRect(x + w + w, y, w, h);
+                g.setColor(Color.red);
+                g.fillRect(x + w, y, w, h);
+                break;
+
+            case type4:
+                g.setColor(Color.green);
+                g.fillRect(x, y, w, h);
+                g.fillRect(x + w, y + h, w, h);
+                g.setColor(Color.red);
+                g.fillRect(x + w, y, w, h);
+                g.fillRect(x, y + h, w, h);
+                break;
+
+            /*case type5:
+            	g.setColor(Color.red);
+            	g.fillRect(x, y, w, h);
+            	g.setColor(Color.green);
+            	g.fillRect(x, y + h, w, h);
+            	break;
+
+            case type6:
+            	g.setColor(Color.green);
+            	g.fillRect(x, y, w, h);
+            	g.setColor(Color.red);
+            	g.fillRect(x + w, y, w, h);
+            	break;
+
+            case type7:
+            	g.setColor(Color.green);
+            	g.fillRect(x, y, w, h);
+            	g.fillRect(x + w + w, y, w, h);
+            	g.setColor(Color.red);
+            	g.fillRect(x + w, y, w, h);
+            	break;
+
+            case type8:
+            	g.setColor(Color.green);
+            	g.fillRect(x, y, w, h);
+            	g.fillRect(x + w, y + h, w, h);
+            	g.setColor(Color.red);
+            	g.fillRect(x + w, y, w, h);
+            	g.fillRect(x, y + h, w, h);
+            	break;*/
+        }
+
+        Image.saveImage(bi, filename);
+    }
     
 }

@@ -1,5 +1,13 @@
 package utilities;
 
+import global.Strings;
+
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
 public class Image 
 {
 
@@ -33,5 +41,22 @@ public class Image
 		
 		return integralImages;
     }
+	
+	public static void saveImage(BufferedImage bi, String filename) {
+		
+		filename = "TEST/debug/"+filename+".png";
+		try 
+		{ 
+			ImageIO.write(bi, "png", new File(filename)); 
+		} 
+		catch (IOException e) 
+		{
+			String errorMessage = "Error at Image.saveImage" + Strings.newline +
+					e.getMessage() + Strings.newline +
+					e.getStackTrace();
+			
+			throw new RuntimeException(errorMessage); 
+		}
+	}
 	
 }

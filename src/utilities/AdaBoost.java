@@ -97,7 +97,7 @@ public class AdaBoost
 
             for (FeatureType featureType : featureTypes)
             {
-                Matrix allFeatureValuesOfSameType = Matrix.loadMatrix("FeatureValues_" + featureType.name() + ".xml");
+                Matrix allFeatureValuesOfSameType = Matrix.loadMatrix("FeatureValues_" + featureType.name());
 
                 for (int j = 1; j <= allFeatureValuesOfSameType.getNrRows(); j++)
                 {
@@ -114,7 +114,7 @@ public class AdaBoost
             double beta = bestClassifier.error / (1 - bestClassifier.error);
             double alpha = Math.log(1 / beta);
 
-            Matrix featureValuesOfSameType = Matrix.loadMatrix("FeatureValues_" + bestFeatureIndex.featureType.name() + ".xml");
+            Matrix featureValuesOfSameType = Matrix.loadMatrix("FeatureValues_" + bestFeatureIndex.featureType.name());
             for (int i = 1; i <= featureValuesOfSameType.getNrCols(); i++)
             {
                 int classification = getWeakClassification(featureValuesOfSameType.getValue(i, bestFeatureIndex.j), bestClassifier.parity, bestClassifier.threshold);

@@ -1,5 +1,9 @@
 package tests;
 
+import java.util.Arrays;
+import java.util.List;
+
+import global.Methods;
 import global.Enumerators.DataSet;
 
 import org.junit.Assert;
@@ -37,6 +41,7 @@ public class AdaBoostTest {
         Assert.assertTrue(isFaceList.getSum() == nrPos);
     }
 	
+	@Test
 	public void TestLearnWeakClassifier()
     {
         int nrNeg = 5000;
@@ -47,73 +52,72 @@ public class AdaBoostTest {
         Matrix weights = AdaBoost.getInitializedWeights(nrPos, nrNeg);
         Matrix isFaceList = AdaBoost.getInitializedIsFaceList(nrPos, nrNeg);
 
-        String[] face_n = Data.getImageList(DataSet.nFace).Take(nrNeg).toArray();
-        String[] face_p = Data.getImageList(DataSet.pFace).Take(nrPos).toArray();
+        String[] faceNeg = Arrays.copyOfRange(Data.getImageList(DataSet.nFace), 0, nrNeg);
+        String[] facePos = Arrays.copyOfRange(Data.getImageList(DataSet.pFace), 0, nrPos);
 
-        Matrix[] face_n_integrals = Image.getIntegralImages(Data.getNormalisedImageMatrixList(face_n));
-        Matrix[] face_p_integrals = Image.getIntegralImages(Data.getNormalisedImageMatrixList(face_p));
+        Matrix[] faceNegIntegrals = Image.getIntegralImages(Data.getNormalisedImageMatrixList(faceNeg, DataSet.nFace));
+        Matrix[] facePosIntegrals = Image.getIntegralImages(Data.getNormalisedImageMatrixList(facePos, DataSet.pFace));
 
-        Matrix featureValues_n = Feature.getFeatureValues(face_n_integrals, ftype);
-        Matrix featureValues_p = Feature.getFeatureValues(face_p_integrals, ftype);
-        Matrix featureValues_all = new Matrix(featureValues_p.getNrVals() + featureValues_n.getNrVals(), 1, featureValues_p.data.Concat(featureValues_n.data).ToArray());
+        Matrix featureValuesNeg = Feature.getFeatureValues(faceNegIntegrals, ftype);
+        Matrix featureValuesPos = Feature.getFeatureValues(facePosIntegrals, ftype);
+        
+        Matrix featureValuesAll = new Matrix(featureValuesPos.getNrVals() + featureValuesNeg.getNrVals(), 1, 
+        									 Methods.concat(featureValuesPos.getData(), featureValuesNeg.getData()));
 
-        String fn = featureValues_n.toString();
-        String fp = featureValues_p.toString();
+        WeakClassifier weakClassifier = AdaBoost.learnWeakClassifier(featureValuesAll, weights, isFaceList);
 
-        WeakClassifier weakClassifier = AdaBoost.learnWeakClassifier(featureValues_all, weights, isFaceList);
+        double meanPos = featureValuesPos.getSum() / (double)nrPos;
+        double meanNeg = featureValuesNeg.getSum() / (double)nrNeg;
+        double meanTot = (meanPos + meanNeg) / 2.0;
 
-        double mean_p = featureValues_p.getSum() / (double)nrPos;
-        double mean_n = featureValues_n.getSum() / (double)nrNeg;
-        double mean_t = (mean_p + mean_n) / 2.0;
-
-        Assert.IsTrue(Math.abs(weakClassifier.threshold - mean_t) < 0.001);
-        //Assert.IsTrue(Math.Abs(weakClassifier.threshold - (-3.6453)) < 0.001);
-        Assert.IsTrue(weakClassifier.parity == 1);
+        Assert.assertTrue(Math.abs(weakClassifier.threshold - meanTot) < 0.001);
+        //Assert.assertTrue(Math.abs(weakClassifier.threshold - (-3.6453)) < 0.001);
+        Assert.assertTrue(weakClassifier.parity == 1);
     }
 	
+	@Test
 	public void TestAdaBoost()
     {
         int T = 10;
-        Matrix Thetas = new Matrix(3, 3, new double[] {9.980000000000000, -0.079477305003370,  0.010000000000000,
-                                                       4.770000000000000,  0.031892257638319, -0.010000000000000,
-                                                       8.490000000000000, -0.055953021563651,  0.010000000000000});
+        //Matrix Thetas = new Matrix(3, 3, new double[] {9.980000000000000, -0.079477305003370,  0.010000000000000,
+        //                                               4.770000000000000,  0.031892257638319, -0.010000000000000,
+        //                                               8.490000000000000, -0.055953021563651,  0.010000000000000});
         
         double[] alphas = new double[] { 1.694004004780836, 1.188907795146310, 0.982307485873930 };
 
         int featureSize = 19;
 
-        Feature[] allFeatures = Feature.getAllFeatures(featureSize, featureSize).ToArray();//.GetRange(0, 1000).ToArray();
+        List<Feature> features = Feature.getAllFeatures(featureSize, featureSize);
+        Feature[] allFeatures = features.toArray(new Feature[features.size()]); //.GetRange(0, 1000).ToArray();
 
         String[] negFaceList = Data.getImageList(DataSet.nFace);
         String[] posFaceList = Data.getImageList(DataSet.pFace);
 
-        Matrix[] negImages = Data.getNormalisedImageMatrixList(negFaceList);
-        Matrix[] posImages = Data.getNormalisedImageMatrixList(posFaceList);
+        Matrix[] negImages = Data.getNormalisedImageMatrixList(negFaceList, DataSet.nFace);
+        Matrix[] posImages = Data.getNormalisedImageMatrixList(posFaceList, DataSet.pFace);
 
-        Matrix[] negIntegral_images = Image.getIntegralImages(negImages);
-        Matrix[] posIntegral_images = Image.getIntegralImages(posImages);
+        Matrix[] negIntegralImages = Image.getIntegralImages(negImages);
+        Matrix[] posIntegralImages = Image.getIntegralImages(posImages);
 
-        Matrix[] integral_images = posIntegral_images.Union(negIntegral_images).ToArray();
+        Matrix[] integralImages = Methods.concat(posIntegralImages, negIntegralImages);
 
-        Matrix isFaceList = AdaBoost.getInitializedIsFaceList(posIntegral_images.Length, negIntegral_images.Length);
+        Matrix isFaceList = AdaBoost.getInitializedIsFaceList(posIntegralImages.length, negIntegralImages.length);
         //Matrix allFeatureValues = Feature.getAllFeatureValues(integral_images, allFeatures);
 
-        AdaBoostRespons[] adaBoostResponses = AdaBoost.executeAdaBoost(integral_images, allFeatures, isFaceList, negIntegral_images.Length, T);
+        AdaBoostRespons[] adaBoostResponses = AdaBoost.executeAdaBoost(integralImages, allFeatures, isFaceList, negIntegralImages.length, T);
 
-        for (int i = 0; i < adaBoostResponses.Length; i++)
+        for (int i = 0; i < adaBoostResponses.length; i++)
         {
-            Feature.saveFeatureImage(Feature.getFeature(adaBoostResponses[i].featureIndex.j, adaBoostResponses[i].featureIndex.featureType,  featureSize, featureSize), featureSize, featureSize, "feature" + i + ".jpg");
+            Feature.saveFeaturePic(Feature.getFeature(adaBoostResponses[i].featureIndex.j, adaBoostResponses[i].featureIndex.featureType,  featureSize, featureSize), featureSize, featureSize, "feature" + i + ".jpg");
         }
 
         double sumAlpha = 0;
-        for (int i = 0; i < adaBoostResponses.Length; i++)
+        for (int i = 0; i < adaBoostResponses.length; i++)
         {
-            sumAlpha += Math.Abs(adaBoostResponses[i].alpha - alphas[i]);
+        	sumAlpha += Math.abs(adaBoostResponses[i].alpha - alphas[i]);
         }
 
-        Assert.IsFalse(false);
-
-        ///double eps = 0.000001;
-        //Assert.IsTrue(sumAlpha < eps);
+        double eps = 0.000001;
+        Assert.assertTrue(sumAlpha < eps);
     }
 }
