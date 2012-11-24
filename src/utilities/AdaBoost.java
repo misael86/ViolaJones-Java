@@ -97,6 +97,8 @@ public class AdaBoost
 
             for (FeatureType featureType : featureTypes)
             {
+            	System.out.println("F: " + featureType + ", T: " + t);
+            	
                 Matrix allFeatureValuesOfSameType = Matrix.loadMatrix("FeatureValues_" + featureType.name());
 
                 for (int j = 1; j <= allFeatureValuesOfSameType.getNrRows(); j++)
@@ -110,15 +112,25 @@ public class AdaBoost
                     }
                 }
             }
+            
+            System.out.println("---------------");
+            System.out.println("Best classifier");
+            System.out.println("Feature type: " + bestFeatureIndex.featureType);
+            System.out.println("J: " + bestFeatureIndex.j);
+            System.out.println("---------------");
 
-            double beta = bestClassifier.error / (1 - bestClassifier.error);
-            double alpha = Math.log(1 / beta);
+            double beta = bestClassifier.error / (1.0 - bestClassifier.error);
+            double alpha = Math.log(1.0 / beta);
 
             Matrix featureValuesOfSameType = Matrix.loadMatrix("FeatureValues_" + bestFeatureIndex.featureType.name());
             for (int i = 1; i <= featureValuesOfSameType.getNrCols(); i++)
             {
                 int classification = getWeakClassification(featureValuesOfSameType.getValue(i, bestFeatureIndex.j), bestClassifier.parity, bestClassifier.threshold);
-                weights.setValue(i, Math.abs(classification - isFaceList.getValue(i)) == 0 ? weights.getValue(i) * beta : weights.getValue(i));
+                
+                if(Math.abs(classification - isFaceList.getValue(i)) == 0 && beta != 0)
+                {
+                	weights.setValue(i, weights.getValue(i) * beta);
+                }
             }
 
             adaBoostRespons[t] = new AdaBoostRespons(bestClassifier, alpha, bestFeatureIndex);
