@@ -44,7 +44,7 @@ public class Image
 	
 	public static void saveImage(BufferedImage bi, String filename) {
 		
-		filename = "TEST/debug/"+filename+".png";
+		filename = "test/debug/"+filename+".png";
 		try 
 		{ 
 			ImageIO.write(bi, "png", new File(filename)); 

@@ -140,9 +140,12 @@ public class AdaBoost
         		}
         	}
         	
-        	Matrix allFeatureValuesOfSameType = Feature.getAllFeatureValues(integralImages, allFeaturesOfSameType.toArray(new Feature[allFeaturesOfSameType.size()]));
-
-        	Matrix.saveMatrix(allFeatureValuesOfSameType, "FeatureValues_" + featureType.name());
+        	if(allFeaturesOfSameType.size() > 0)
+        	{
+	        	Matrix allFeatureValuesOfSameType = Feature.getAllFeatureValues(integralImages, allFeaturesOfSameType.toArray(new Feature[allFeaturesOfSameType.size()]));
+	
+	        	Matrix.saveMatrix(allFeatureValuesOfSameType, "FeatureValues_" + featureType.name());
+        	}
         }    
     }
 	

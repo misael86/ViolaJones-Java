@@ -6,10 +6,10 @@ public abstract class Strings
 			System.getProperty("line.separator");	
 
 	public final static String homeURL = 
-			"C:\\Users\\Misael\\Documents\\Visual Studio 2012\\Projects\\ViolaJonesCS\\ViolaJonesCS";
+			"C:\\Users\\misae_000\\Documents\\Eclipse\\Projects\\ViolaJones-Java";
 	
 	public final static String[] dataURL = new String[] 
-			{ homeURL + "\\Images\\PFACES\\", 
-			  homeURL + "\\Images\\NFACES\\" };
+			{ homeURL + "\\images\\PFACES\\", 
+			  homeURL + "\\images\\NFACES\\" };
 }
 

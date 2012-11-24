@@ -43,7 +43,7 @@ public class AdaBoostTest {
 	
 	@Test
 	public void TestLearnWeakClassifier()
-    {
+    {		
         int nrNeg = 5000;
         int nrPos = 3000;
 
@@ -51,13 +51,13 @@ public class AdaBoostTest {
 
         Matrix weights = AdaBoost.getInitializedWeights(nrPos, nrNeg);
         Matrix isFaceList = AdaBoost.getInitializedIsFaceList(nrPos, nrNeg);
-
+        
         String[] faceNeg = Arrays.copyOfRange(Data.getImageList(DataSet.nFace), 0, nrNeg);
         String[] facePos = Arrays.copyOfRange(Data.getImageList(DataSet.pFace), 0, nrPos);
 
         Matrix[] faceNegIntegrals = Image.getIntegralImages(Data.getNormalisedImageMatrixList(faceNeg, DataSet.nFace));
         Matrix[] facePosIntegrals = Image.getIntegralImages(Data.getNormalisedImageMatrixList(facePos, DataSet.pFace));
-
+		        
         Matrix featureValuesNeg = Feature.getFeatureValues(faceNegIntegrals, ftype);
         Matrix featureValuesPos = Feature.getFeatureValues(facePosIntegrals, ftype);
         
@@ -69,7 +69,7 @@ public class AdaBoostTest {
         double meanPos = featureValuesPos.getSum() / (double)nrPos;
         double meanNeg = featureValuesNeg.getSum() / (double)nrNeg;
         double meanTot = (meanPos + meanNeg) / 2.0;
-
+        
         Assert.assertTrue(Math.abs(weakClassifier.threshold - meanTot) < 0.001);
         //Assert.assertTrue(Math.abs(weakClassifier.threshold - (-3.6453)) < 0.001);
         Assert.assertTrue(weakClassifier.parity == 1);
@@ -78,7 +78,7 @@ public class AdaBoostTest {
 	@Test
 	public void TestAdaBoost()
     {
-        int T = 10;
+        int T = 3;
         //Matrix Thetas = new Matrix(3, 3, new double[] {9.980000000000000, -0.079477305003370,  0.010000000000000,
         //                                               4.770000000000000,  0.031892257638319, -0.010000000000000,
         //                                               8.490000000000000, -0.055953021563651,  0.010000000000000});
@@ -88,7 +88,8 @@ public class AdaBoostTest {
         int featureSize = 19;
 
         List<Feature> features = Feature.getAllFeatures(featureSize, featureSize);
-        Feature[] allFeatures = features.toArray(new Feature[features.size()]); //.GetRange(0, 1000).ToArray();
+        Feature[] allFeatures = features.subList(0, 1000).toArray(new Feature[1000]);
+        //Feature[] allFeatures = features.toArray(new Feature[features.size()]);
 
         String[] negFaceList = Data.getImageList(DataSet.nFace);
         String[] posFaceList = Data.getImageList(DataSet.pFace);
@@ -114,6 +115,7 @@ public class AdaBoostTest {
         double sumAlpha = 0;
         for (int i = 0; i < adaBoostResponses.length; i++)
         {
+        	System.out.println(adaBoostResponses[i].alpha + " - " + alphas[i]);
         	sumAlpha += Math.abs(adaBoostResponses[i].alpha - alphas[i]);
         }
 
