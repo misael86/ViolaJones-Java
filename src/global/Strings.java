@@ -10,6 +10,7 @@ public abstract class Strings
 	
 	public final static String[] dataURL = new String[] 
 			{ homeURL + "\\images\\PFACES\\", 
-			  homeURL + "\\images\\NFACES\\" };
+			  homeURL + "\\images\\NFACES\\",
+			  homeURL + "\\images\\test\\"};
 }
 

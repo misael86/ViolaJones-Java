@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import global.Strings;
@@ -24,6 +25,7 @@ public class Feature
         this.h = h;
     }
     
+    // TESTED
     public static double getBoxSum(Matrix integralImage, int colNr, int rowNr, int width, int height)
     {
         if (height < 1 || width < 1 || 
@@ -49,7 +51,8 @@ public class Feature
         return sum;
     }
 	
-    public static List<Feature> getFeatures(int featureWidth, int featureHeight, FeatureType type)
+    // TESTED
+    public static Feature[] getFeatures(int featureWidth, int featureHeight, FeatureType type)
     {
         int x, y, w, h;
 
@@ -91,51 +94,68 @@ public class Feature
                 break;
         }
 
-        return all_features;
+        return all_features.toArray(new Feature[all_features.size()]);
     }
 
-    public static List<Feature> getAllFeatures(int featureWidth, int featureHeight)
+    // TESTED
+    public static Feature[] getAllFeatures(int featureWidth, int featureHeight)
     {
         List<Feature> allFeatures = new ArrayList<Feature>();
 
-        allFeatures.addAll(getFeatures(featureWidth, featureHeight, FeatureType.type1));
-        allFeatures.addAll(getFeatures(featureWidth, featureHeight, FeatureType.type2));
-        allFeatures.addAll(getFeatures(featureWidth, featureHeight, FeatureType.type3));
-        allFeatures.addAll(getFeatures(featureWidth, featureHeight, FeatureType.type4));
+        allFeatures.addAll(Arrays.asList(getFeatures(featureWidth, featureHeight, FeatureType.type1)));
+        allFeatures.addAll(Arrays.asList(getFeatures(featureWidth, featureHeight, FeatureType.type2)));
+        allFeatures.addAll(Arrays.asList(getFeatures(featureWidth, featureHeight, FeatureType.type3)));
+        allFeatures.addAll(Arrays.asList(getFeatures(featureWidth, featureHeight, FeatureType.type4)));
+
+        return allFeatures.toArray(new Feature[allFeatures.size()]);
+    }
+    
+    // TESTED
+    public static List<Feature[]> getAllSeparatedFeatures(int featureWidth, int featureHeight)
+    {
+        List<Feature[]> allFeatures = new ArrayList<Feature[]>();
+
+        allFeatures.add(getFeatures(featureWidth, featureHeight, FeatureType.type1));
+        allFeatures.add(getFeatures(featureWidth, featureHeight, FeatureType.type2));
+        allFeatures.add(getFeatures(featureWidth, featureHeight, FeatureType.type3));
+        allFeatures.add(getFeatures(featureWidth, featureHeight, FeatureType.type4));
 
         return allFeatures;
     }
     
+    // TESTED
     public static Feature getFeature(int index, int featureWidth, int featureHeight)
     {
-        List<Feature> allFeatures = getAllFeatures(featureWidth, featureHeight);
-        if (index > allFeatures.size() || index < 1) 
+        Feature[] allFeatures = getAllFeatures(featureWidth, featureHeight);
+        if (index > allFeatures.length || index < 1) 
         { 
         	String errorMessage = "Error at Feature.getFeature" + Strings.newline +
-					"Nr features: " + allFeatures.size() + Strings.newline +
+					"Nr features: " + allFeatures.length + Strings.newline +
 					"Index: " + index;
 			
 			throw new RuntimeException(errorMessage);
         }
         
-        return allFeatures.get(index - 1);
+        return allFeatures[index - 1];
     }
 
+    // TESTED
     public static Feature getFeature(int index, FeatureType featureType, int featureWidth, int featureHeight)
     {
-        List<Feature> allFeatures = getFeatures(featureWidth, featureHeight, featureType);
-        if (index > allFeatures.size() || index < 1) 
+        Feature[] allFeatures = getFeatures(featureWidth, featureHeight, featureType);
+        if (index > allFeatures.length || index < 1) 
         { 
         	String errorMessage = "Error at Feature.getFeature" + Strings.newline +
-					"Nr features: " + allFeatures.size() + Strings.newline +
+					"Nr features: " + allFeatures.length + Strings.newline +
 					"Index: " + index;
 			
 			throw new RuntimeException(errorMessage);
         }
         
-        return allFeatures.get(index - 1);
+        return allFeatures[index - 1];
     }
     
+    // TESTED
     public static double getFeatureValue(Matrix integralImage, Feature feature)
     {
 
@@ -175,6 +195,7 @@ public class Feature
         return val;
     }
     
+    // TESTED
     public static Matrix getFeatureValues(Matrix[] integralImages, Feature feature)
     {
     	double[] values = new double[integralImages.length];
@@ -187,6 +208,7 @@ public class Feature
         return new Matrix(values.length, 1, values);
     }
     
+    // TESTED
     public static Matrix getAllFeatureValues(Matrix[] integralImages, Feature[] allFeatures)
     {
         Matrix result = new Matrix(integralImages.length, allFeatures.length);
@@ -199,14 +221,27 @@ public class Feature
         return result;
     }
     
+    // TESTED
+    public static void saveFeatureValues(Matrix featureValues, String featureType) 
+    {
+    	Matrix.saveMatrix(featureValues, "FeatureValues_" + featureType);
+    }
+    
+    // TESTED
+    public static Matrix loadFeatureValues(String featureType)
+    {
+    	return Matrix.loadMatrix("FeatureValues_" + featureType);
+    }
+    
+    // TESTED
     public static void saveFeaturePic(Feature feature, int width, int height, String filename) {
 
         int x, y, w, h, k = 5;
 
-        x = (int) feature.x * k;
-        y = (int) feature.y * k;
-        w = (int) feature.w * k;
-        h = (int) feature.h * k;
+        x = feature.x * k;
+        y = feature.y * k;
+        w = feature.w * k;
+        h = feature.h * k;
         width = width * k;
         height = height * k;
 

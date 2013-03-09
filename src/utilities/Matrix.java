@@ -6,15 +6,16 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import global.Strings;
 
 public class Matrix implements Serializable
 {
 
-	///
-	/// V A R I A B L E S
-	///
+	/*
+		V A R I A B L E S
+	*/
 	
 	private static final long serialVersionUID = 1L;
 
@@ -24,32 +25,36 @@ public class Matrix implements Serializable
 	
 	private double[] data;
 
-	///
-	/// C O N S T R U C T O R S
-	///
+	/*
+		C O N S T R U C T O R S
+	*/
 
 	public Matrix() 
 	{
 
 	}
 
+	// TESTED
 	public Matrix(int nrCols, int nrRows)
 	{
 		this.setSize(nrCols, nrRows);
 	}
 
+	// TESTED
 	public Matrix(int nrCols, int nrRows, double[] data)
 	{
 		this.setSize(nrCols, nrRows);
 		this.setData(data);
 	}
 
+	// TESTED
 	public Matrix(Matrix m)
 	{
 		this.setSize(m.getNrCols(), m.getNrRows());
 		this.setData(m.getData());	
 	}
 
+	// TESTED
 	public Matrix(Matrix m1, Matrix m2)
     {
         if (m1.nrCols != m2.nrCols)
@@ -67,10 +72,11 @@ public class Matrix implements Serializable
         this.setData(m1.data, m2.data);
     }
 	
-	///
-	/// S E T
-	///
+	/*
+		S E T
+	*/
 
+	// TESTED
 	private void setSize(int nrCols, int nrRows)
 	{
 		if (nrCols < 1 || nrRows < 1)
@@ -87,6 +93,7 @@ public class Matrix implements Serializable
 		this.data = new double[this.getNrVals()];
 	}
 
+	// TESTED
 	private void setData(double[] data)
 	{		
 		if(this.data.length != data.length)
@@ -102,6 +109,7 @@ public class Matrix implements Serializable
 		System.arraycopy(data, 0, this.data, 0, this.getNrVals());	
 	}
 
+	// TESTED
 	private void setData(double[] data1, double[] data2)
 	{
 		this.data = new double[data1.length + data2.length];
@@ -109,6 +117,7 @@ public class Matrix implements Serializable
 		System.arraycopy(data2, 0, this.data, data1.length, data2.length);
 	}
 
+	// TESTED
 	public void setValue(int index, double value)
 	{
         if (index > this.getNrVals() || index < 1)
@@ -123,6 +132,7 @@ public class Matrix implements Serializable
         this.data[index - 1] = value;
 	}
 
+	// TESTED
 	public void setValue(int colNr, int rowNr, double value)
 	{
 		if (colNr < 1 || colNr > this.nrCols || rowNr < 1 || rowNr > this.nrRows)
@@ -140,6 +150,25 @@ public class Matrix implements Serializable
 		this.data[(rowNr-1) * this.nrCols + colNr - 1] = value;
 	}
 	
+	// TESTED
+	public void setSeveralValues(int startIndex, int endIndex, double value) 
+	{
+		if (0 >= startIndex || startIndex >= endIndex || endIndex > this.getNrVals())
+		{
+			String errorMessage = "Error at Matrix.setSeveralValues" + Strings.newline +
+					"Start index: " + startIndex + Strings.newline +
+					"End index: " + endIndex + Strings.newline +
+					"Nr vals: " + this.getNrVals();
+			
+			throw new RuntimeException(errorMessage);
+		}
+		
+		for(int i = startIndex; i <= endIndex; i++) {
+			this.setValue(i, value);
+		}
+	}
+	
+	// TESTED
 	public void setRow(int row, Matrix value)
     {
         if (row < 1 || row > this.nrRows)
@@ -157,6 +186,7 @@ public class Matrix implements Serializable
         System.arraycopy(value.data, 0, this.data, startIndex, copyLenght);
     }
 
+	// TESTED
 	public void setRows(int rowStart, int nrRows, Matrix value)
     {
         if (rowStart < 1 || nrRows < 1 || rowStart + nrRows - 1 > this.nrRows)
@@ -176,6 +206,7 @@ public class Matrix implements Serializable
         System.arraycopy(value.data, 0, this.data, startIndex, copyLenght);
     }
 	
+	// TESTED
 	public void setSubMatrix(int colNr, int rowNr, int width, int height, Matrix value)
 	{
 		if (colNr < 1 || colNr > this.nrCols ||
@@ -204,30 +235,35 @@ public class Matrix implements Serializable
         }
 	}
 	
-	///
-	/// G E T
-	///
+	/*
+		G E T
+	*/
 
+	// TESTED
 	public int getNrRows()
 	{
 		return this.nrRows;
 	}
 
+	// TESTED
 	public int getNrCols()
 	{
 		return this.nrCols;
 	}
 
+	// TESTED
 	public int getNrVals()
 	{
 		return this.nrCols * this.nrRows;
 	}
 
+	// TESTED
 	public double[] getData()
 	{
 		return this.data;
 	}
 
+	// TESTED
 	public double getValue(int index)
 	{
         if (index > this.getNrVals() || index < 1)
@@ -242,6 +278,7 @@ public class Matrix implements Serializable
         return this.data[index - 1];
 	}
 	
+	// TESTED
 	public double getValue(int colNr, int rowNr)
 	{
 		if (colNr < 1 || colNr > this.nrCols || rowNr < 1 || rowNr > this.nrRows)
@@ -258,6 +295,7 @@ public class Matrix implements Serializable
 		return this.data[(rowNr - 1) * this.nrCols + colNr - 1];
 	}
 
+	// TESTED
 	public double getStandardDeviation()
     {
         if (this.getNrVals() - 1 == 0)
@@ -272,9 +310,10 @@ public class Matrix implements Serializable
         return Math.sqrt(result);
     }
 	
+	// TESTED
 	public double getMaxValue()
     {
-		double max = Double.MIN_VALUE;
+		double max = Double.NEGATIVE_INFINITY;
 		for(int i = 0; i < this.data.length; i++)
 		{
 			if(this.data[i] > max)
@@ -286,6 +325,7 @@ public class Matrix implements Serializable
         return max;
     }
 	
+	// TESTED
 	public double getMinValue()
     {
         double min = Double.MAX_VALUE;
@@ -300,6 +340,7 @@ public class Matrix implements Serializable
         return min;
     }
 	
+	// TESTED
 	public double getMean()
     {
         if (this.getNrVals() == 0)
@@ -310,9 +351,10 @@ public class Matrix implements Serializable
 			throw new RuntimeException(errorMessage);
         }
 
-        return this.getSum() / (double)this.getNrCols();
+        return this.getSum() / (double)this.getNrVals();
     }
 	
+	// TESTED
 	public double getSum()
     {
 		double sum = 0;
@@ -324,11 +366,13 @@ public class Matrix implements Serializable
         return sum;
     }
 	
+	// TESTED
 	public boolean getIsRow()
 	{
 		return this.nrRows == 1;
 	}
 
+	// TESTED
 	public boolean getIsEqual(Matrix m)
 	{	
 		boolean cols = this.nrCols == m.nrCols;
@@ -349,6 +393,7 @@ public class Matrix implements Serializable
         return data;
 	}
 	
+	// TESTED
 	public static boolean EqualsList(Matrix[] matrixList1, Matrix[] matrixList2)
     {
         if (matrixList1.length != matrixList2.length) { return false; }
@@ -364,6 +409,7 @@ public class Matrix implements Serializable
         return true;
     }
 	
+	// TESTED
 	public Matrix getAbsMatrix()
 	{
 		Matrix result = new Matrix(this.nrCols, this.nrRows);
@@ -375,6 +421,7 @@ public class Matrix implements Serializable
 		return result;
 	}
 
+	// TESTED
 	public Matrix getDotMultiplication(Matrix m)
     {
         if (this.nrCols != m.nrCols || this.nrRows != m.nrRows)
@@ -396,6 +443,7 @@ public class Matrix implements Serializable
         return new Matrix(this.nrCols, m.nrRows, data);
     }
 	
+	// TESTED	
 	public Matrix getDotDivision(Matrix m)
     {
         if (this.nrCols != m.nrCols || this.nrRows != m.nrRows)
@@ -417,17 +465,19 @@ public class Matrix implements Serializable
         return new Matrix(this.nrCols, this.nrRows, data);
     }
 	
+	// TESTED
 	public Matrix getRoundedMatrix(int numberOfDecimals)
     {
         Matrix result = new Matrix(this.nrCols, this.nrRows);
-        for (int i = 1; i <= this.getNrVals(); i++)
+        for (int i = 0; i < this.getNrVals(); i++)
         {
-        	result.data[i] = new BigDecimal(this.data[i]).setScale(numberOfDecimals).doubleValue();
+        	result.data[i] = new BigDecimal(this.data[i]).setScale(numberOfDecimals, RoundingMode.HALF_UP).doubleValue();
         }
 
         return result;
     }
 	
+	// TESTED
 	public Matrix getRow(int row)
     {
 		if (row < 1 || row > this.nrRows)
@@ -449,6 +499,7 @@ public class Matrix implements Serializable
         return new Matrix(this.nrCols, 1, result);
     }
 	
+	// TESTED
 	public Matrix getRows(int rowStart, int nrRows)
     {
         if (rowStart < 1 || nrRows < 1 || rowStart + nrRows - 1 > this.nrRows)
@@ -471,6 +522,7 @@ public class Matrix implements Serializable
         return new Matrix(this.nrCols, nrRows, result);
     }
 	
+	// TESTED
 	public Matrix getRescale(double minValue, double maxValue) 
 	{	
 		// ----------------------------------------------------------------------- //
@@ -492,23 +544,16 @@ public class Matrix implements Serializable
 		return result;
 	}
 	
+	// TESTED
 	public Matrix getNormal()
     {
         double std = this.getStandardDeviation();
         double mean = this.getMean();
 
-        if (std == 0)
-        {
-        	String errorMessage = "Error at Matrix.getNormal" + Strings.newline +
-					"Standard deviation = 0";
-
-			throw new RuntimeException(errorMessage);
-        }
-            
-
-        return this.getSubtraction(mean).getDivision(std);
+        return std == 0 ? this.getSubtraction(mean) : this.getSubtraction(mean).getDivision(std);
     }
 	
+	// TESTED
 	public Matrix getSubtraction(double val)
 	{
         Matrix result = new Matrix(this);
@@ -518,7 +563,7 @@ public class Matrix implements Serializable
         	return result;
         }
 
-        for (int i = 0; i < this.getNrVals(); i++)
+        for (int i = 0; i < result.getNrVals(); i++)
         {
             result.data[i] -= val;
         }
@@ -526,6 +571,7 @@ public class Matrix implements Serializable
         return result;
     }
 	
+	// TESTED
 	public Matrix getSubtraction(Matrix m)
 	{
 		if (this.nrCols != m.nrCols || this.nrRows != m.nrRows)
@@ -545,6 +591,7 @@ public class Matrix implements Serializable
         return new Matrix(m.nrCols, m.nrRows, data);
 	}
 	
+	// TESTED
 	public Matrix getAddition(double val)
 	{
         Matrix result = new Matrix(this);
@@ -562,6 +609,7 @@ public class Matrix implements Serializable
         return result;
     }
 	
+	// TESTED
 	public Matrix getAddition(Matrix m)
 	{
 		if (this.nrCols != m.nrCols || this.nrRows != m.nrRows)
@@ -580,7 +628,8 @@ public class Matrix implements Serializable
 
         return new Matrix(m.nrCols, m.nrRows, data);
 	}
-	
+
+	// TESTED
 	public Matrix getDivision(double val)
     {
 		if (val == 0)
@@ -606,6 +655,7 @@ public class Matrix implements Serializable
         return result;
     }
 	
+	// TESTED
 	public Matrix getPower(double val)
     {
         double[] result = new double[this.getNrVals()];
@@ -618,6 +668,7 @@ public class Matrix implements Serializable
         return new Matrix(this.nrCols, this.nrRows, result);
     }
 	
+	// TESTED
 	public Matrix getSubMatrix(int colNr, int rowNr, int width, int height)
     {
 		if (colNr < 1 || colNr > this.nrCols ||
@@ -650,23 +701,13 @@ public class Matrix implements Serializable
         return result;
     }
 	
+	// TESTED
 	public Matrix getMergedMatrixes(Matrix m)
 	{
-		if (this.nrCols != m.nrCols)
-		{
-			String errorMessage = 	"Error at Matrix.mergeMatrixes" + Strings.newline +
-					"this: " + this.getNrCols() + Strings.newline +
-					"input: " + m.getNrCols();
-
-			throw new RuntimeException(errorMessage);
-		}
-
-		Matrix result = new Matrix(this.nrCols, this.nrRows + m.nrRows);
-		result.setData(this.data, m.data);
-
-		return result;
+		return new Matrix(this, m);
 	}
 
+	// TESTED
 	public Matrix getMultiplication(Matrix m)
     {
         int i, j, k;
@@ -697,6 +738,7 @@ public class Matrix implements Serializable
         return resultMatrix;
     }
 	
+	// TESTED
 	public Matrix getMultiplication(double val)
     {
         if (val == 0)
@@ -719,6 +761,7 @@ public class Matrix implements Serializable
         }
     }
 	
+	// TESTED
 	public Matrix getRemoveRow(int rowNr)
 	{
         if (rowNr > this.nrRows || rowNr < 1)
@@ -745,6 +788,7 @@ public class Matrix implements Serializable
         return result;
     }
 	
+	// TESTED
 	public void getPrintOut()
 	{
 		System.out.println("Matrix: " + this.nrCols + "x" + this.nrRows);
@@ -758,11 +802,29 @@ public class Matrix implements Serializable
             System.out.println();
         }
     }
+
+	// TESTED
+	public static Matrix[] getJoinedLists(Matrix[] m1, Matrix[] m2)
+	{
+		Matrix[] result = new Matrix[m1.length + m2.length];
+		
+		for(int i = 0; i < m1.length; i++)
+		{
+			result[i] = m1[i];
+		}
+		for(int i = 0; i < m2.length; i++)
+		{
+			result[m1.length + i] = m2[i];
+		}
+		
+		return result;
+	}
 	
-	///
-	/// SAVE & LOAD
-	///
+	/*
+		SAVE & LOAD
+	*/
 	
+	// TESTED
 	public static void saveMatrix(Matrix matrix, String fileName) 
     {
 		fileName = "data/" + fileName;
@@ -787,6 +849,7 @@ public class Matrix implements Serializable
         }
 	}
 	
+	// TESTED
     @SuppressWarnings("unchecked")
 	public static <T extends Matrix> T loadMatrix( String fileName ) 
     {

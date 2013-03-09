@@ -1,8 +1,17 @@
 package utilities;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
+import models.AdaBoostRespons;
+import models.FeatureIndex;
+import models.ScanImageRespons;
+import models.WeakClassifier;
+
+import global.Enumerators.DataSet;
 import global.Enumerators.FeatureType;
 import global.Strings;
 
@@ -22,7 +31,7 @@ public class AdaBoost
             alphaSum += adaBoostRespons.alpha;
         }
 
-        return sum > (alphaSum / 2) ? 1 : 0;
+        return sum > (alphaSum / 2.0) ? 1 : 0;
     }
 	
 	public static int getWeakClassification(double featureValue, double parity, double threshold)
@@ -41,6 +50,7 @@ public class AdaBoost
         return new Matrix(data.length, 1, data);
     }
 	
+	// TESTED
 	public static WeakClassifier learnWeakClassifier(Matrix allFeatureValues, Matrix weights, Matrix isFaceList, int j)
     {
         Matrix featureRow = allFeatureValues.getRow(j);
@@ -48,6 +58,7 @@ public class AdaBoost
         return learnWeakClassifier(featureRow, weights, isFaceList);
     }
 	
+	// TESTED
 	public static WeakClassifier learnWeakClassifier(Matrix featureValues, Matrix weights, Matrix isFaceList)
     {
         if (featureValues.getNrVals() != weights.getNrVals() ||
@@ -78,6 +89,7 @@ public class AdaBoost
         return new WeakClassifier(pStar, error, threshold);
     }
 	
+	// TESTED
 	public static AdaBoostRespons[] executeAdaBoost(Matrix[] integralImages, Feature[] allFeatures, Matrix isFaceList, int nrNegative, int nrWeakClassifiers)
     {
 		FeatureType[] featureTypes = FeatureType.values();
@@ -90,7 +102,19 @@ public class AdaBoost
 
         for (int t = 0; t < nrWeakClassifiers; t++)
         {
-            weights = weights.getDivision(weights.getSum());
+        	if(weights.getSum() == 0) 
+        	{
+        		weights.setSeveralValues(1, weights.getNrVals(), 1.0 / weights.getNrVals());
+        	}
+        	else
+        	{
+        		weights = weights.getDivision(weights.getSum());
+        	}
+        	
+        	// CHANGED
+        	// weights = weights.getNormal();
+        	// CHANGED
+            // weights = weights.getDivision(weights.getSum());
 
             FeatureIndex bestFeatureIndex = new FeatureIndex(FeatureType.type1, Integer.MAX_VALUE);
             WeakClassifier bestClassifier = new WeakClassifier(Integer.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
@@ -105,7 +129,7 @@ public class AdaBoost
                 {
                     WeakClassifier weakClassifier = learnWeakClassifier(allFeatureValuesOfSameType, weights, isFaceList, j);
                     if (weakClassifier.error < bestClassifier.error)
-                    {
+                    {                  	
                         bestClassifier = weakClassifier;
                         bestFeatureIndex.featureType = featureType;
                         bestFeatureIndex.j = j;
@@ -117,6 +141,7 @@ public class AdaBoost
             System.out.println("Best classifier");
             System.out.println("Feature type: " + bestFeatureIndex.featureType);
             System.out.println("J: " + bestFeatureIndex.j);
+            System.out.println("Number Of Features: " + Matrix.loadMatrix("FeatureValues_" + bestFeatureIndex.featureType.name()).getNrRows());
             System.out.println("---------------");
 
             double beta = bestClassifier.error / (1.0 - bestClassifier.error);
@@ -135,10 +160,209 @@ public class AdaBoost
 
             adaBoostRespons[t] = new AdaBoostRespons(bestClassifier, alpha, bestFeatureIndex);
         }
+        
+        AdaBoostRespons.saveAdaBoostResponsArray(adaBoostRespons, "strongClassifier");
 
         return adaBoostRespons;
     }
 	
+	// TESTED
+	public static double ApplyDetector(AdaBoostRespons[] weakClassifiers, Matrix integralImage)
+	{
+		List<Feature[]> allSeparatedFeatures = Feature.getAllSeparatedFeatures(19,19);
+		
+		double result = 0;
+		
+		for(AdaBoostRespons weakClassifier : weakClassifiers)
+		{
+			int featureType = weakClassifier.featureIndex.featureType.ordinal();
+			int featureIndex = weakClassifier.featureIndex.j;
+			
+			Feature currentFeature = allSeparatedFeatures.get(featureType)[featureIndex - 1];
+			double featureValue = Feature.getFeatureValue(integralImage, currentFeature);			
+			
+			result += weakClassifier.alpha * getWeakClassification(featureValue, weakClassifier.weakClassifier.parity, weakClassifier.weakClassifier.threshold);
+		}
+		
+		return result;
+	}
+	
+    public static double computeROC1(AdaBoostRespons[] weakClassifiers, Matrix[] pFaces, Matrix[] nFaces) 
+    {
+    	double posScore = 0;
+    	for (Matrix pFace : pFaces) 
+        {
+			Matrix image = pFace;
+			image = image.getNormal();
+			image = Image.getIntegralImage(image);
+			  
+			posScore += ApplyDetector(weakClassifiers, image);
+        }
+    	
+    	double negScore = 0;
+    	for (Matrix nFace : nFaces) 
+        {
+			Matrix image = nFace;
+			image = image.getNormal();
+			image = Image.getIntegralImage(image);
+			  
+			negScore += ApplyDetector(weakClassifiers, image);
+        }
+    	
+    	double deltaThreshold = (negScore / (double)nFaces.length) - (posScore / (double)pFaces.length);
+    	double threshold = (negScore / (double)nFaces.length) + (deltaThreshold / 2.0);
+    	
+    	Matrix result = new Matrix(1, 1, new double[] { threshold });
+    	saveThreshold(result, 1);
+    	
+    	System.out.println("ROC1: " + threshold);
+    	
+    	return threshold;
+    }
+    
+    public static double computeROC2(AdaBoostRespons[] weakClassifiers, Matrix[] pFaces, Matrix[] nFaces) 
+    {
+    	double thresholdMin = Double.POSITIVE_INFINITY;
+    	double thresholdMax = Double.NEGATIVE_INFINITY;
+    	
+    	double[] trueScores = new double[pFaces.length];
+    	for (int i = 0; i < pFaces.length; i++) 
+        {
+			Matrix image = pFaces[i];
+			image = image.getNormal();
+			image = Image.getIntegralImage(image);
+			  
+			double score = ApplyDetector(weakClassifiers, image);
+			thresholdMin = Math.min(thresholdMin, score);
+			thresholdMax = Math.max(thresholdMax, score);
+			trueScores[i] = score;
+        }
+    	
+    	double[] falseScores = new double[nFaces.length];
+    	for (int i = 0; i < nFaces.length; i++) 
+        {
+			Matrix image = nFaces[i];
+			image = image.getNormal();
+			image = Image.getIntegralImage(image);
+			  
+			double score = ApplyDetector(weakClassifiers, image);
+			thresholdMin = Math.min(thresholdMin, score);
+			thresholdMax = Math.max(thresholdMax, score);
+			falseScores[i] = score;
+        }
+  
+    	double steps = 1000;
+    	double deltaThreshold = (thresholdMax - thresholdMin) / steps;
+    	double maxTruePositiveRate = Double.NEGATIVE_INFINITY;
+    	double minFalsePositiveRate = Double.POSITIVE_INFINITY;
+    	double bestThreshold = 0;
+    	
+    	for (double testThreshold = thresholdMin; testThreshold <= thresholdMax; testThreshold += deltaThreshold) 
+    	{
+    		int truePositive = 0;
+    		int falsePositive = 0;
+    		
+    		for(double trueScore : trueScores) 
+    		{
+    			if (trueScore >= testThreshold) { truePositive++; }
+       		}
+    		for(double falseScore : falseScores) 
+    		{
+    			if (falseScore >= testThreshold) { falsePositive++; }
+    		}
+    		
+    		double truePositiveRate = truePositive / (double) pFaces.length;
+            double falsePositiveRate = falsePositive / (double) nFaces.length;
+    		
+            if (truePositiveRate >= 0.7 && falsePositiveRate <= minFalsePositiveRate) 
+            {
+            	maxTruePositiveRate = truePositiveRate;
+            	minFalsePositiveRate = falsePositiveRate;
+            	bestThreshold = testThreshold;
+            }    
+    	}
+    	
+    	Matrix result = new Matrix(1, 1, new double[] { bestThreshold });
+    	saveThreshold(result, 2);
+    	
+    	System.out.println("ROC2: " + bestThreshold);
+    	System.out.println("True Positive Rate: " + maxTruePositiveRate);
+    	System.out.println("False Positive Rate: " + minFalsePositiveRate);
+
+    	return bestThreshold;
+    	
+    }
+	
+    public static ScanImageRespons[] ScanImageFixedSize(AdaBoostRespons[] weakClassifiers, Matrix image, double threshold) 
+    {	
+    	ArrayList<ScanImageRespons> respons = new ArrayList<ScanImageRespons>();
+    	
+    	for(int x = 1; x < image.getNrCols() - 19; x += 2)
+    	{
+    		for(int y = 1; y < image.getNrRows() - 19; y += 2)
+    		{
+    			Matrix subImage = image.getSubMatrix(x, y, 19, 19);
+    			subImage = subImage.getNormal();
+    			Matrix subIntegralImage = Image.getIntegralImage(subImage);
+    			double ans = ApplyDetector(weakClassifiers, subIntegralImage);
+    			
+    			if (ans >= threshold) {
+    				respons.add(new ScanImageRespons(x, y, 19));
+    			}
+    		}
+    	}
+    	
+    	return respons.toArray(new ScanImageRespons[respons.size()]);
+    }
+    
+    // TESTED
+    public static void displayDetections(BufferedImage bi, ScanImageRespons[] detections, String filename) 
+    {
+        Graphics2D graphics = bi.createGraphics();
+        graphics.setColor(Color.red);
+
+        for (ScanImageRespons detection : detections) 
+        {
+        	graphics.drawRect(detection.x, detection.y, detection.size, detection.size);
+		}
+
+        Image.saveImage(bi, filename);
+    }
+    
+    // TESTED
+    public static void saveThreshold(Matrix threshold, int number) 
+    {
+    	Matrix.saveMatrix(threshold, "threshold_" + number);
+    }
+    
+    // TESTED
+    public static Matrix loadThreshold(int number) 
+    {
+    	return Matrix.loadMatrix("threshold_" + number);
+    }
+    
+    // TESTED
+    public static void saveStrongClassifier(AdaBoostRespons[] adaBoostRespons) 
+    {
+    	AdaBoostRespons.saveAdaBoostResponsArray(adaBoostRespons, "strongClassifier");
+	}
+    
+    // TESTED
+    public static AdaBoostRespons[] loadStrongClassifier()
+    {
+    	return AdaBoostRespons.loadAdaBoostResponsArray("strongClassifier");
+    }
+    
+    public static void findFaces(AdaBoostRespons[] weakClassifiers, double threshold, DataSet dataSet, String filename, boolean group) 
+    {	
+        BufferedImage image = Data.getBufferedImage(Strings.dataURL[dataSet.ordinal()] + filename);
+        image = Data.getGrayImage(image);
+        Matrix imageMatrix = Image.getImageMatrix(image);
+        
+        ScanImageRespons[] detections = AdaBoost.ScanImageFixedSize(weakClassifiers, imageMatrix, threshold);
+        displayDetections(image, detections, filename + "_detections");
+    }
+    
 	private static void InitiateFeatureValues(Matrix[] integralImages, Feature[] allFeatures, FeatureType[] featureTypes)
     {
         for (FeatureType featureType : featureTypes)
@@ -155,16 +379,16 @@ public class AdaBoost
         	if(allFeaturesOfSameType.size() > 0)
         	{
 	        	Matrix allFeatureValuesOfSameType = Feature.getAllFeatureValues(integralImages, allFeaturesOfSameType.toArray(new Feature[allFeaturesOfSameType.size()]));
-	
-	        	Matrix.saveMatrix(allFeatureValuesOfSameType, "FeatureValues_" + featureType.name());
+	        	Feature.saveFeatureValues(allFeatureValuesOfSameType, featureType.name());
         	}
         }    
     }
 	
+	// TESTED
 	public static Matrix getInitializedWeights(int nrPos, int nrNeg)
     {
-        double val_p = 1.0 / (double)(2 * nrPos);
-        double val_n = 1.0 / (double)(2 * nrNeg);
+        double val_p = 1.0 / (2.0 * (double)nrPos);
+        double val_n = 1.0 / (2.0 * (double)nrNeg);
 
         double[] weights = new double[nrNeg + nrPos];
 
@@ -176,6 +400,7 @@ public class AdaBoost
         return new Matrix(weights.length, 1, weights);
     }
 
+	// TESTED
     public static Matrix getInitializedIsFaceList(int nrPos, int nrNeg)
     {
         double[] isFaceList = new double[nrNeg + nrPos];

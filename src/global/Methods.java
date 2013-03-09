@@ -1,24 +1,15 @@
 package global;
 
-import java.util.Arrays;
+public class Methods {
 
-import utilities.Matrix;
-
-public class Methods 
-{
-
-	public static double[] concat(double[] first, double[] second) 
+	public static double[] concat(double[] A, double[] B) 
 	{
-		double[] result = Arrays.copyOf(first, first.length + second.length);
-		System.arraycopy(second, 0, result, first.length, second.length);
-		return result;
+		   int aLen = A.length;
+		   int bLen = B.length;
+		   double[] C= new double[aLen+bLen];
+		   System.arraycopy(A, 0, C, 0, aLen);
+		   System.arraycopy(B, 0, C, aLen, bLen);
+		   return C;
 	}
-	
-	public static Matrix[] concat(Matrix[] first, Matrix[] second) 
-	{
-		Matrix[] result = Arrays.copyOf(first, first.length + second.length);
-		System.arraycopy(second, 0, result, first.length, second.length);
-		return result;
-	}
-	
+
 }

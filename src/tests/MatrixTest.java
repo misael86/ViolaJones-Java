@@ -1,5 +1,8 @@
 package tests;
 
+import global.DebugInfo1;
+import global.DebugInfo3;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -122,7 +125,7 @@ public class MatrixTest {
     }
 	
 	@Test
-	public void TestStandarddeviation()
+	public void TestGetStandardDeviation()
     {
         Matrix image = new Matrix(19, 19, new double[]
                 {-0.4068,  0.2601,  1.0011,  1.6309,  1.7421,  1.5939,  1.9273,  2.2978,  2.5942,  2.5942,  2.2237,  1.2234,  0.8529,  0.0007, -0.2957,  0.2971, -0.4068, -0.5180, -1.1478,
@@ -149,7 +152,7 @@ public class MatrixTest {
     }
 	
 	@Test
-	public void TestMedian()
+	public void TestGetMean()
     {
         Matrix image = new Matrix(19, 19, new double[]
                 {-0.4068,  0.2601,  1.0011,  1.6309,  1.7421,  1.5939,  1.9273,  2.2978,  2.5942,  2.5942,  2.2237,  1.2234,  0.8529,  0.0007, -0.2957,  0.2971, -0.4068, -0.5180, -1.1478,
@@ -171,12 +174,12 @@ public class MatrixTest {
                  -0.7403, -0.8144,  0.2230,  0.2230, -0.8885, -1.0737, -1.5183, -1.7777, -1.1849, -0.9255, -0.9996, -1.0737, -1.0737,  0.0378, -0.1104, -0.3698,  1.0381,  0.0748, -1.4813,
                  -0.9255, -1.1849, -0.1104,  0.4453, -0.3698, -0.2586, -0.1104, -0.2586,  0.2230,  0.2601,  0.0007,  0.0748, -0.5180,  0.3712,  0.0748, -0.2216,  0.6676, -0.4439, -1.5183,
                  -1.4813, -0.9996, -0.9255, -0.7773, -0.2216,  0.6306,  0.2971,  0.0007, -0.0734, -0.2586, -0.1475, -0.4439,  0.2971, -0.1845,  0.1860, -0.4809, -0.2216, -1.0737, -1.6295});
-
+        
         Assert.assertTrue(0 == Math.round(image.getMean()));
     }
 	
 	@Test
-	public void TestMultiplication()
+	public void TestGetMultiplication()
     {
         Matrix m001 = new Matrix(2, 3, new double[] { 1, 2, 3, 4, 5, 6 });
         Matrix m002 = new Matrix(2, 3, new double[] { 2, 4, 6, 8, 10, 12 });
@@ -186,7 +189,7 @@ public class MatrixTest {
     }
 
 	@Test
-	public void TestDivision()
+	public void TestGetDivision()
     {
         Matrix m001 = new Matrix(2, 3, new double[] { 1, 2, 3, 4, 5, 6 });
         Matrix m002 = new Matrix(2, 3, new double[] { 2, 4, 6, 8, 10, 12 });
@@ -276,16 +279,6 @@ public class MatrixTest {
     }
 	
 	@Test
-	public void TestGetSubmatrix()
-    {
-        Matrix m001 = new Matrix(3, 3, new double[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
-        Matrix m002 = new Matrix(2, 3, new double[] { 2, 3, 5, 6, 8, 9 });
-        Matrix m003 = m001.getSubMatrix(2, 1, 2, 3);
-
-        Assert.assertTrue(m002.getIsEqual(m003));
-    }
-	
-	@Test
 	public void TestGetSum()
     {
         Matrix m001 = new Matrix(3, 3, new double[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
@@ -317,5 +310,120 @@ public class MatrixTest {
 		Matrix m002 = Matrix.loadMatrix("TestSaveLoad");
 		
 		Assert.assertTrue(m001.getIsEqual(m002));
+	}
+	
+	@Test
+	public void TestGetNormal()
+	{
+		double eps = 0.000001;
+		
+		Matrix m001 = DebugInfo1.im;
+		m001 = m001.getNormal(); 
+				
+		Assert.assertTrue(Math.abs(m001.getStandardDeviation() - 1) < eps);
+		Assert.assertTrue(Math.abs(m001.getMean()) < eps);
+	}
+	
+	@Test
+	public void TestGetRescale() 
+	{
+		Matrix m001 = new Matrix(3, 1, new double[] {1, 2, 3});
+		Matrix m002 = new Matrix(4, 1, new double[] {-10, -5, 3, 8});
+		m002 = m002.getRescale(1, 3);
+		
+		Assert.assertTrue(m001.getMinValue() == m002.getMinValue());
+		Assert.assertTrue(m001.getMaxValue() == m002.getMaxValue());
+	}
+	
+	@Test
+	public void TestGetAbsMatrix() 
+	{
+		Matrix m001 = new Matrix(3, 1, new double[] {1, 0, 1});
+		Matrix m002 = new Matrix(3, 1, new double[] {-1, 0, 1});
+		m002 = m002.getAbsMatrix();
+		
+		Assert.assertTrue(m001.getIsEqual(m002));
+	}
+	
+	@Test
+	public void TestGetIsRow() 
+	{
+		Matrix m001 = new Matrix(3, 1, new double[] {1, 1, 1});
+		Matrix m002 = new Matrix(1, 3, new double[] {1, 1, 1});
+				
+		Assert.assertTrue(m001.getIsRow());
+		Assert.assertFalse(m002.getIsRow());
+	}
+	
+	@Test
+	public void TestGetMatrixColsRowsVals() 
+	{
+		Matrix m001 = new Matrix(3, 2, new double[] {1, 1, 1, 1, 1, 1});
+				
+		Assert.assertTrue(m001.getNrCols() == 3);
+		Assert.assertTrue(m001.getNrRows() == 2);
+		Assert.assertTrue(m001.getNrVals() == 3 * 2);
+	}
+	
+	@Test
+	public void TestGetData() 
+	{
+		Matrix m001 = new Matrix(2, 2, new double[] {1, 2, 3, 4});
+				
+		double[] data = m001.getData();
+		for(int i = 0; i < data.length; i++)
+		{
+			Assert.assertTrue(data[i] == i + 1);
+		}
+	}
+	
+	@Test
+	public void TestGetMaxMinValue() 
+	{
+		Matrix m001 = new Matrix(2, 2, new double[] {1, 2, 3, 4});
+				
+		Assert.assertTrue(m001.getMinValue() == 1);
+		Assert.assertTrue(m001.getMaxValue() == 4);
+	}
+	
+	@Test
+	public void TestRoundedMatrix() 
+	{
+		Matrix m001 = new Matrix(3, 1, new double[] {1.11, 1.55, 1.77});
+		Matrix m002 = m001.getRoundedMatrix(0);
+		Matrix m003 = new Matrix(3, 1, new double[] {1, 2, 2});
+		Matrix m004 = m001.getRoundedMatrix(1);
+		Matrix m005 = new Matrix(3, 1, new double[] {1.1, 1.6, 1.8});
+		
+		Assert.assertTrue(m002.getIsEqual(m003));
+		Assert.assertTrue(m004.getIsEqual(m005));
+	}
+	
+	@Test
+	public void TestSetSeveralValues() 
+	{
+		Matrix m001 = new Matrix(4, 1, new double[] {1.11, 1.55, 1.77, 1.99});
+		Matrix m002 = new Matrix(4, 1, new double[] {1.11, 2, 2, 1.99});
+		m001.setSeveralValues(2, 3, 2);
+		
+		Assert.assertTrue(m001.getIsEqual(m002));
+	}
+	
+	@Test
+	public void TestGetJoinedLists() 
+	{
+		Matrix m001 = DebugInfo1.ii_mm;
+		Matrix m002 = DebugInfo1.im;
+		Matrix m003 = DebugInfo3.fs;
+		Matrix m004 = new Matrix(2, 2, new double[] {1, 2, 3, 4});
+		Matrix m005 = new Matrix(3, 1, new double[] {12, 14, 15});
+		
+		Matrix[] ml001 = new Matrix[] {m001, m002, m003};
+		Matrix[] ml002 = new Matrix[] {m004, m005};
+		
+		Matrix[] ml003 = Matrix.getJoinedLists(ml001, ml002);
+		
+		Assert.assertTrue(ml003.length == ml001.length + ml002.length);
+		Assert.assertTrue(ml003[0].getIsEqual(m001));
 	}
 }

@@ -23,25 +23,49 @@ public class FeatureTest {
 	@Test
 	public void TestGetBoxSum()
     {
-        Matrix m001 = new Matrix(3, 2, new double[] { 1, 2, 3, 4, 5, 6 });
+        Matrix m001 = DebugInfo1.im;
         Matrix i001 = Image.getIntegralImage(m001);
-        Matrix m002 = m001.getSubMatrix(2, 1, 2, 2);
+        Matrix m002 = m001.getSubMatrix(2, 1, 10, 10);
+
+        double eps = 0.000001;
         
-        Assert.assertTrue(Feature.getBoxSum(i001, 2, 1, 2, 2) == m002.getSum());
+        Assert.assertTrue(Math.abs(Feature.getBoxSum(i001, 2, 1, 10, 10) - m002.getSum()) < eps);
     }
 
 	@Test
 	public void TestGetFeatures()
     {
-        List<Feature> type1 = Feature.getFeatures(19, 19, FeatureType.type1);
-        List<Feature> type2 = Feature.getFeatures(19, 19, FeatureType.type2);
-        List<Feature> type3 = Feature.getFeatures(19, 19, FeatureType.type3);
-        List<Feature> type4 = Feature.getFeatures(19, 19, FeatureType.type4);
+        Feature[] type1 = Feature.getFeatures(19, 19, FeatureType.type1);
+        Feature[] type2 = Feature.getFeatures(19, 19, FeatureType.type2);
+        Feature[] type3 = Feature.getFeatures(19, 19, FeatureType.type3);
+        Feature[] type4 = Feature.getFeatures(19, 19, FeatureType.type4);
         
-        int nrFeatures = type1.size() + type2.size() + type3.size() + type4.size();
+        int nrFeatures = type1.length + type2.length + type3.length + type4.length;
         
         Assert.assertTrue(nrFeatures == 32746);
     }
+	
+	@Test
+	public void TestGetAllFeatures()
+    {
+        Feature[] allFeatures = Feature.getAllFeatures(19, 19);
+        
+        Assert.assertTrue(allFeatures.length == 32746);
+    }
+	
+	@Test
+	public void TestGetAllSeparatedFeatures() 
+	{
+		List<Feature[]> allFeatures = Feature.getAllSeparatedFeatures(19, 19);
+		
+		int length = 0;
+		for (Feature[] separatedFeatures : allFeatures)
+		{
+			length += separatedFeatures.length;
+		}
+		
+		Assert.assertTrue(length == 32746);
+	}
 	
 	@Test
 	public void TestGetFeatureValue1()
@@ -97,7 +121,7 @@ public class FeatureTest {
         Assert.assertTrue(Math.abs(DebugInfo2.f4 - f4) < eps);
     }
 	
-	//@Test
+	@Test
 	public void TestGetFeatureValues()
     {
         double eps = 0.000001;
@@ -106,8 +130,21 @@ public class FeatureTest {
         Matrix[] images = Data.getNormalisedImageMatrixList(names, Enumerators.DataSet.pFace);
         Matrix[] integrals = Image.getIntegralImages(images);
         Matrix values = Feature.getFeatureValues(integrals, DebugInfo3.ftype);
-
+        
         Assert.assertTrue((values.getSubtraction(DebugInfo3.fs)).getAbsMatrix().getSum() < eps);
     }
-	
+
+	@Test
+	public void TestSaveFeaturePic()
+    {
+		Feature feature = new Feature(FeatureType.type4, 5, 5, 5, 5);
+		Feature.saveFeaturePic(feature, 19, 19, "sanity_check_1");
+		
+		Feature[] allFeatures = Feature.getAllFeatures(19, 19);
+		Feature.saveFeaturePic(allFeatures[5193], 19, 19, "sanity_check_2");
+		Feature.saveFeaturePic(allFeatures[12766], 19, 19, "sanity_check_3");
+		
+		Assert.assertTrue(true);
+    }
+
 }
